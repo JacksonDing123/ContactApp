@@ -2,6 +2,7 @@ package com.example.ics4ufinalproject;
 
 import javafx.application.Application;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -48,6 +49,7 @@ public class HelloApplication extends Application {
 
         final VBox vbox2 = new VBox();
         vbox2.getChildren().addAll(add,delete);
+        vbox2.setAlignment(Pos.CENTER);
 
         final HBox hbox = new HBox();
         hbox.getChildren().addAll(vbox,vbox2);
