@@ -1,5 +1,6 @@
 package com.example.ics4ufinalproject;
 
+import javafx.beans.property.SimpleStringProperty;
 import javafx.scene.layout.Pane;
 
 import java.io.*;
@@ -11,72 +12,72 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 public class Contact {
-    private String firstName;
-    private String lastName;
-    private String email;
-    private String number;
+    private SimpleStringProperty firstName;
+    private SimpleStringProperty lastName;
+    private SimpleStringProperty email;
+    private SimpleStringProperty number;
 
-    private String postalCode;
+    private SimpleStringProperty postalCode;
 
-    private String company;
+    private SimpleStringProperty company;
 
     public static ArrayList<Contact> contactList;
 
     public Contact(String firstName, String lastName, String email, String number, String postalCode, String company) {
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.email = email;
-        this.number = number;
-        this.postalCode = postalCode;
-        this.company = company;
+        this.firstName = new SimpleStringProperty(firstName);
+        this.lastName = new SimpleStringProperty(lastName);
+        this.email = new SimpleStringProperty(email);
+        this.number = new SimpleStringProperty(number);
+        this.postalCode = new SimpleStringProperty(postalCode);
+        this.company = new SimpleStringProperty(company);
     }
 
     public String getFirstName() {
-        return firstName;
+        return firstName.get();
     }
 
     public void setFirstName(String firstName) {
-        this.firstName = firstName;
+        this.firstName.set(firstName);
     }
 
     public String getLastName() {
-        return lastName;
+        return lastName.get();
     }
 
     public void setLastName(String lastName) {
-        this.lastName = lastName;
+        this.lastName.set(lastName);
     }
 
     public String getEmail() {
-        return email;
+        return email.get();
     }
 
     public void setEmail(String email) {
-        this.email = email;
+        this.email.set(email);
     }
 
     public String getNumber() {
-        return number;
+        return number.get();
     }
 
     public void setNumber(String number) {
-        this.number = number;
+        this.number.set(number);
     }
 
     public String getPostalCode() {
-        return postalCode;
+        return postalCode.get();
     }
 
     public void setPostalCode(String postalCode) {
-        this.postalCode = postalCode;
+        this.postalCode.set(postalCode);
     }
 
     public String getCompany() {
-        return company;
+        return company.get();
     }
 
     public void setCompany(String company) {
-        this.company = company;
+        this.company.set(company);
     }
 
     public static void updateContacts(){
