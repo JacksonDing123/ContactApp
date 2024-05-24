@@ -16,17 +16,21 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 public class Contact {
+
+    //all of the object variables for each contact as simple string properties except numer, everything is private due to java conventions
     private SimpleStringProperty firstName;
     private SimpleStringProperty lastName;
     private SimpleStringProperty email;
-    private SimpleListProperty<String> number;
+    private SimpleListProperty<String> number; //simple list property for the number because it is a dynamic element
 
     private SimpleStringProperty postalCode;
 
     private SimpleStringProperty company;
 
+    //class variable of the contactlist that will store all of the contacts
     public static ArrayList<Contact> contactList = new ArrayList<Contact>();
 
+    //contacts constructor, the numbers input is initially a string, then each number is sparated by "," to be put into the simpleListProperty
     public Contact(String firstName, String lastName, String email, String number, String postalCode, String company) {
         this.firstName = new SimpleStringProperty(firstName);
         this.lastName = new SimpleStringProperty(lastName);
@@ -35,6 +39,8 @@ public class Contact {
         this.postalCode = new SimpleStringProperty(postalCode);
         this.company = new SimpleStringProperty(company);
     }
+
+    //getters and setters for the variables
 
     public String getFirstName() {
         return firstName.get();
@@ -76,28 +82,41 @@ public class Contact {
         return number;
     }
 
+    //updates a value in the number's simpleListProperty through an index and value
     public void updateNumber(int index, String newNumber) {
         this.number.set(index, newNumber);
+    }
+
+    public void addNumber(String newNumber){
+        this.number.add(newNumber);
     }
 
     public void setCompany(String company) {
         this.company.set(company);
     }
 
+    /**
+     * writes the information from the contactList into the JSON file
+     * @throws IOException
+     */
     public static void updateContacts() throws IOException {
 
         //get the file based on local path and create the required variables for writing into json
         File info = new File("./src/main/java/com/example/ics4ufinalproject/contacts.json");
 
+        //makes the file
         FileWriter file = new FileWriter(info);
 
+        //makes a JSON array where all of the contacts will be appended to
         JSONArray contactListJson = new JSONArray();
 
-        //loops through all tasks and stores their key info like name, date, and difficulty
+        //loops through all contacts and stores their key info like name, date, and difficulty
         for(int i = 0; i< contactList.size(); i++){
 
+            //because numbers is a list, it needs to be a Json array as well
             JSONArray numberListJson = new JSONArray();
 
+            //adding all the contact info into a temporary JSON object
             JSONObject tempInfo = new JSONObject();
             tempInfo.put("firstName", contactList.get(i).getFirstName());
             tempInfo.put("lastName", contactList.get(i).getLastName());
@@ -105,6 +124,7 @@ public class Contact {
             tempInfo.put("postalCode", contactList.get(i).getPostalCode());
             tempInfo.put("company", contactList.get(i).getCompany());
 
+            //adding all of the numbers into the numbers JSON array
             for (String number : contactList.get(i).getNumber()) {
                 // Create a JSONObject for each number
                 JSONObject numberJson = new JSONObject();
@@ -112,14 +132,15 @@ public class Contact {
                 numberListJson.add(numberJson);
             }
 
-            // Add the numberListJson to the contactJson
+            // Add the numberListJson to the tempary JSON object
             tempInfo.put("numbers", numberListJson);
 
+            //adds the tempary json object into the overall contact list array
             contactListJson.add(tempInfo);
         }
 
         try{
-            //We can write any JSONArray or JSONObject instance to the file
+            //writes the information from the contactListArray into the json file
             file.write(contactListJson.toJSONString());
             file.flush();
 
@@ -130,29 +151,31 @@ public class Contact {
     }
 
     /**
-     * method used to read the information from the json file, used in the very start of code
+     * method used to read the contact information from the json file
      */
     public static void readContacts(){
-        //JSON parser object to parse read file
+        //creats JSON parser object to parse read file
         JSONParser jsonParser = new JSONParser();
 
+        //creates the file
         File info = new File("./src/main/java/com/example/ics4ufinalproject/contacts.json");
 
         try (FileReader reader = new FileReader(info))
         {
 
-            //Read JSON file
+            //make an object out of the file through the File reader
             Object obj = jsonParser.parse(reader);
-
+            //cast the object into a JSON array
             JSONArray contactList = (JSONArray) obj;
 
+            //if the contacts is a JSON array then it goes through the array
             if (contactList instanceof JSONArray) {
-
+                //if the list is empty the program returns
                 if(contactList.isEmpty()){
                     System.out.println("empty document");
                     return;
                 }
-                //loops through the json file to get all of the jsonObjects and uses the lamda expression to call on the parseTaskObject method which will add the tasks into the actual task List
+                //loops through the json file to get all of the jsonObjects and uses the lamda expression to call on the parseContactObject method which will add the contacts from the json file into the actual contact List
                 contactList.forEach( emp -> parseContactObject( (JSONObject) emp) );
             } else {
                 System.out.println("The file does not contain a JSON object.");
@@ -166,11 +189,11 @@ public class Contact {
     }
 
     /**
-     * records down the information of the task passed in as parameters and put it into arrayList
+     * pareses the information of the contact and put the contact into arrayList
      */
     private static void parseContactObject(JSONObject thisContact)
     {
-        //JSONObject thisTask = (JSONObject) task.get("Task");
+        //gets the string of each properties for a contact
 
         String tFirstName =  (String) thisContact.get("firstName");
 
@@ -178,6 +201,7 @@ public class Contact {
 
         String tEmail = (String) thisContact.get("email");
 
+        //when it comes to numbers because it is an array when it was written into the json file,
         JSONArray numbersArray = (JSONArray) thisContact.get("numbers");
         ArrayList<String> numbersArryList = new ArrayList<String>();
         if (numbersArray instanceof JSONArray) {
