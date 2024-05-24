@@ -1,5 +1,6 @@
 package com.example.ics4ufinalproject;
 
+import javafx.animation.PauseTransition;
 import javafx.application.Application;
 import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
@@ -18,6 +19,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.scene.text.Font;
+import javafx.util.Duration;
 
 import java.io.IOException;
 
@@ -31,6 +33,9 @@ public class HelloApplication extends Application {
 
     @Override
     public void start(Stage stage) throws IOException {
+
+        Label warning = new Label("wrong inputs go again need numbers or need @");
+        warning.setVisible(false);
 
         //creates second vbox for the add and delete buttons with proper spacing settings
         final VBox vbox2 = new VBox();
@@ -62,6 +67,7 @@ public class HelloApplication extends Application {
         grid.add(new Label("Company:"), 0, 5);
         grid.add(new Label("New Number"), 0, 6);
         grid.add(new Label("Delete Number Index"), 0, 7);
+        grid.add(warning,0,8);
 
         // creates textfields
         TextField firstNameField = new TextField();
@@ -93,39 +99,46 @@ public class HelloApplication extends Application {
             @Override public void handle(ActionEvent e) {
                 if(firstNameField.getText().equals("")&&lastNameField.getText().equals("")&&emailField.getText().equals("")&&numberField.getText().equals("")&&postalCodeField.getText().equals("")&&companyField.getText().equals("")){
                     //if all of the fields are clear then do nothing
-                }else{
-                    //create a new contact from the given information given in the textfield
-                    Contact newcontact = new Contact(
-                            firstNameField.getText(),
-                            lastNameField.getText(),
-                            emailField.getText(),
-                            numberField.getText(),
-                            postalCodeField.getText(),
-                            companyField.getText()
-                    );
-                    //add the new contact to the table and to the contactList in the contact class
-                    data.add(newcontact);
-                    Contact.contactList.add(newcontact);
+                }else
+                    if(!numberField.getText().matches("[0-9,]*")||!emailField.getText().contains("@")){
+                        warning.setVisible(true);
 
-                    //clear all of the fields for future use
-                    firstNameField.clear();
-                    lastNameField.clear();
-                    emailField.clear();
-                    numberField.clear();
-                    postalCodeField.clear();
-                    companyField.clear();
+                        PauseTransition pause = new PauseTransition(Duration.seconds(3));
+                        pause.setOnFinished(event -> warning.setVisible(false));
+                        pause.play();
+                    }else{
+                        //create a new contact from the given information given in the textfield
+                        Contact newcontact = new Contact(
+                                firstNameField.getText(),
+                                lastNameField.getText(),
+                                emailField.getText(),
+                                numberField.getText(),
+                                postalCodeField.getText(),
+                                companyField.getText()
+                        );
+                        //add the new contact to the table and to the contactList in the contact class
+                        data.add(newcontact);
+                        Contact.contactList.add(newcontact);
 
-                    //updates the table with the new data
-                    table.setItems(data);
+                        //clear all of the fields for future use
+                        firstNameField.clear();
+                        lastNameField.clear();
+                        emailField.clear();
+                        numberField.clear();
+                        postalCodeField.clear();
+                        companyField.clear();
 
-                    //updates the contact list to write the new information into the json file
-                    try {
-                        Contact.updateContacts();
-                    } catch (IOException ex) {
-                        throw new RuntimeException(ex);
+                        //updates the table with the new data
+                        table.setItems(data);
+
+                        //updates the contact list to write the new information into the json file
+                        try {
+                            Contact.updateContacts();
+                        } catch (IOException ex) {
+                            throw new RuntimeException(ex);
+                        }
                     }
                 }
-            }
         });
 
         //creates the delete button with size
@@ -149,6 +162,15 @@ public class HelloApplication extends Application {
                 table.setItems(data);
             }
         });
+
+        vbox2.getChildren().addAll(add,delete);
+        vbox.setPadding(new Insets(10, 20, 10, 20));
+        vbox2.setAlignment(Pos.CENTER);
+
+        //creates a hbox which will contain the contact vbox, the vbox with the add and delete buttons ,and the gridpane with the textfields
+        final HBox hbox = new HBox();
+        hbox.setAlignment(Pos.CENTER);
+        hbox.getChildren().addAll(vbox,vbox2, grid);
 
         //make the table editable and set the size for the table
         table.setEditable(true);
@@ -311,15 +333,6 @@ public class HelloApplication extends Application {
 
         //add all the colum to the table
         table.getColumns().addAll(firstNameCol, lastNameCol, emailCol, numberCol, postalCodeCol, companyCol);
-
-        vbox2.getChildren().addAll(add,delete);
-        vbox.setPadding(new Insets(10, 20, 10, 20));
-        vbox2.setAlignment(Pos.CENTER);
-
-        //creates a hbox which will contain the contact vbox, the vbox with the add and delete buttons ,and the gridpane with the textfields
-        final HBox hbox = new HBox();
-        hbox.setAlignment(Pos.CENTER);
-        hbox.getChildren().addAll(vbox,vbox2, grid);
 
         //prograom reads all of the contacts from the json file
         Contact.readContacts();
