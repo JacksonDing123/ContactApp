@@ -98,7 +98,7 @@ public class HelloApplication extends Application {
 
         //button that adds the contact
         Button add = new Button("Add");
-        add.setPrefWidth(100); // Set preferred width
+        add.setPrefWidth(150); // Set preferred width
         add.setPrefHeight(50); // Set preferred height
 
         //below is what the program execute when add is pressed
@@ -107,8 +107,8 @@ public class HelloApplication extends Application {
                 if(firstNameField.getText().equals("")&&lastNameField.getText().equals("")&&emailField.getText().equals("")&&numberField.getText().equals("")&&postalCodeField.getText().equals("")&&companyField.getText().equals("")){
                     //if all of the fields are clear then do nothing
                 }else
-                    //if the number field is something other than numbers or comas, or the email section doesn't contain the @ sign then the program doesn't add the contact because input is invalid
-                    if((!numberField.getText().matches("[0-9,]*")&&!numberField.getText().equals(""))||(!emailField.getText().contains("@")&&!emailField.getText().equals(""))){
+                    //if the number field is something other than numbers or comas, or the email section doesn't match the proper format then the program doesn't add the contact because input is invalid
+                    if((!numberField.getText().matches("[0-9,]*")&&!numberField.getText().equals(""))||(!emailField.getText().matches("^[\\w.%+-]+@[\\w.-]+\\.[a-zA-Z]{2,6}$")&&!emailField.getText().equals(""))){
                         //show the warning label for 3 seconds
                         warning.setVisible(true);
                         PauseTransition pause = new PauseTransition(Duration.seconds(3));
@@ -151,7 +151,7 @@ public class HelloApplication extends Application {
 
         //creates the delete button with size
         Button delete = new Button("Delete");
-        delete.setPrefWidth(100); // Set preferred width
+        delete.setPrefWidth(150); // Set preferred width
         delete.setPrefHeight(50); // Set preferred height
 
         //below is what the program execute when add is pressed
@@ -262,8 +262,8 @@ public class HelloApplication extends Application {
             //gets the position and row of the email
             TablePosition<Contact, String> pos = event.getTablePosition();
             int row = pos.getRow();
-            //if the new edited value has @ then it changes the value and refreshes the table
-            if(event.getNewValue().contains("@")){
+            //if the new edited value matches the standard format of a email
+            if(event.getNewValue().matches("^[\\w.%+-]+@[\\w.-]+\\.[a-zA-Z]{2,6}$")){
                 event.getRowValue().setEmail(event.getNewValue());
                 table.refresh();
             }else{
@@ -289,13 +289,13 @@ public class HelloApplication extends Application {
         //setting up button to delete a number
         Button deleteNumber = new Button("Delete Number");
         vbox2.getChildren().add(deleteNumber);
-        deleteNumber.setPrefWidth(100); // Set preferred width
+        deleteNumber.setPrefWidth(150); // Set preferred width
         deleteNumber.setPrefHeight(50); // Set preferred height
 
         //setting up button to add a button to a contact
         Button addNumber = new Button("Add Number");
         vbox2.getChildren().add(addNumber);
-        addNumber.setPrefWidth(100); // Set preferred width
+        addNumber.setPrefWidth(150); // Set preferred width
         addNumber.setPrefHeight(50); // Set preferred height
 
         //for the number property, because it is a dynamic element, it displayed as a list instead which is why instead of string it is a SimpleListProperty
