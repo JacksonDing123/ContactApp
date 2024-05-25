@@ -17,9 +17,11 @@ import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.scene.text.Font;
 import javafx.util.Duration;
+import javafx.util.converter.DefaultStringConverter;
 
 import java.io.IOException;
 
@@ -28,13 +30,11 @@ public class HelloApplication extends Application {
     //creat table view and observable list to show the data
     private TableView<Contact> table = new TableView<Contact>();
     private final ObservableList<Contact> data = FXCollections.observableArrayList();
-    //makes a list view for the dynamic property
-    //private final ListView<String> listView = new ListView<>();
 
     @Override
     public void start(Stage stage) throws IOException {
 
-        Label warning = new Label("wrong inputs go again need numbers or need @");
+        Label warning = new Label("invalid input");
         warning.setVisible(false);
 
         //creates second vbox for the add and delete buttons with proper spacing settings
@@ -100,7 +100,7 @@ public class HelloApplication extends Application {
                 if(firstNameField.getText().equals("")&&lastNameField.getText().equals("")&&emailField.getText().equals("")&&numberField.getText().equals("")&&postalCodeField.getText().equals("")&&companyField.getText().equals("")){
                     //if all of the fields are clear then do nothing
                 }else
-                    if(!numberField.getText().matches("[0-9,]*")||!emailField.getText().contains("@")){
+                    if((!numberField.getText().matches("[0-9,]*")&&!numberField.getText().equals(""))||(!emailField.getText().contains("@")&&!emailField.getText().equals(""))){
                         warning.setVisible(true);
 
                         PauseTransition pause = new PauseTransition(Duration.seconds(3));
@@ -205,9 +205,51 @@ public class HelloApplication extends Application {
         TableColumn<Contact, String> emailCol = new TableColumn<>("Email");
         emailCol.setCellValueFactory(new PropertyValueFactory<Contact, String>("email"));
         emailCol.setCellFactory(TextFieldTableCell.forTableColumn());
+        emailCol.setCellFactory(column -> new TextFieldTableCell<>(new DefaultStringConverter()) {
+
+            // Generate a random light color once for the entire column
+            double minBrightness = 0.7; // minimum brightness for light colors
+            double red = minBrightness + (Math.random() * (1.0 - minBrightness));
+            double green = minBrightness + (Math.random() * (1.0 - minBrightness));
+            double blue = minBrightness + (Math.random() * (1.0 - minBrightness));
+            Color randomColor = Color.color(red, green, blue);
+            String colorString = toRgbString(randomColor);
+
+            // Method to convert Color to RGB string
+            private String toRgbString(Color color) {
+                return String.format("rgb(%d, %d, %d)",
+                        (int) (color.getRed() * 255),
+                        (int) (color.getGreen() * 255),
+                        (int) (color.getBlue() * 255));
+            }
+            @Override
+            public void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                    setGraphic(null);
+                    setStyle("");
+                } else {
+                    setText(item);
+                    setStyle("-fx-background-color: " + colorString + "; -fx-border-color: lightgrey; -fx-border-width: 0 0 1 1;");
+                }
+            }
+        });
         emailCol.setOnEditCommit(event -> {
-            try {
+            TablePosition<Contact, String> pos = event.getTablePosition();
+            int row = pos.getRow();
+            Contact contact = event.getTableView().getItems().get(row);
+            if(event.getNewValue().contains("@")){
                 event.getRowValue().setEmail(event.getNewValue());
+                table.refresh();
+            }else{
+                warning.setVisible(true);
+                PauseTransition pause = new PauseTransition(Duration.seconds(3));
+                pause.setOnFinished(thisevent -> warning.setVisible(false));
+                pause.play();
+                table.refresh();
+            }
+            try {
                 Contact.updateContacts();
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -235,11 +277,19 @@ public class HelloApplication extends Application {
                 listView.setCellFactory(TextFieldListCell.forListView());//set the cells in the list to be text fields so that they can be edited
                 //setOnEditCommit is important because it only does the follwing after a edit is committed (after the user pressed enter)
                 listView.setOnEditCommit(event -> {
-                    int index = event.getIndex(); //gets the index of the number that is being edited
-                    String newValue = event.getNewValue(); //gets the new string value entered edit
-                    Contact contact = getTableView().getItems().get(getIndex()); //gets the contact that is associated with the change
-                    contact.updateNumber(index, newValue); //changes the value of the number in the contac itself
-                    listView.getItems().set(index, newValue); //sets the value in the listview to the new string value that represents the number
+                    if(event.getNewValue().matches("[0-9,]*")){
+                        int index = event.getIndex(); //gets the index of the number that is being edited
+                        String newValue = event.getNewValue(); //gets the new string value entered edit
+                        Contact contact = getTableView().getItems().get(getIndex()); //gets the contact that is associated with the change
+                        contact.updateNumber(index, newValue); //changes the value of the number in the contac itself
+                        listView.getItems().set(index, newValue); //sets the value in the listview to the new string value that represents the number
+                    }else{
+                        warning.setVisible(true);
+
+                        PauseTransition pause = new PauseTransition(Duration.seconds(3));
+                        pause.setOnFinished(thisevent -> warning.setVisible(false));
+                        pause.play();
+                    }
                     try {
                         Contact.updateContacts();//updates the contact and writes the information into the json files
                     } catch (IOException e) {
@@ -249,9 +299,9 @@ public class HelloApplication extends Application {
 
                 deleteNumber.setOnAction(event -> {
                     int index = Integer.parseInt(deleteNumIndex.getText());
-                    table.getSelectionModel().getSelectedItem().getNumber().remove(index);
+                    table.getSelectionModel().getSelectedItem().getNumber().remove(index-1);
                     deleteNumIndex.clear();
-                    listView.getItems().remove(index);
+                    listView.getItems().remove(index-1);
                     try {
                         Contact.updateContacts();
                     } catch (IOException e) {
@@ -261,10 +311,19 @@ public class HelloApplication extends Application {
 
                 addNumber.setOnAction(event -> {
                     String newValue = newNumber.getText();
-                    table.getSelectionModel().getSelectedItem().getNumber().add(newValue);
-                    newNumber.clear();
-                    listView.getItems().add(newValue);
-                    System.out.println("done?");
+
+                    if(newValue.matches("[0-9,]*")&&!newValue.equals("")){
+                        table.getSelectionModel().getSelectedItem().getNumber().add(newValue);
+                        newNumber.clear();
+                        listView.getItems().add(newValue);
+                    }else{
+                        warning.setVisible(true);
+
+                        PauseTransition pause = new PauseTransition(Duration.seconds(3));
+                        pause.setOnFinished(thisevent -> warning.setVisible(false));
+                        pause.play();
+                        newNumber.clear();
+                    }
                     try {
                         Contact.updateContacts();
                     } catch (IOException e) {
