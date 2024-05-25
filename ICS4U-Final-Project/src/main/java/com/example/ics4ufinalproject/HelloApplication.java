@@ -29,22 +29,29 @@ public class HelloApplication extends Application {
 
     //creat table view and observable list to show the data
     private TableView<Contact> table = new TableView<Contact>();
+    //make the observable list to be displayed on the table
     private final ObservableList<Contact> data = FXCollections.observableArrayList();
 
+    /**
+     * Start method where the main JavaFX Program runs
+     * @param stage
+     * @throws IOException
+     */
     @Override
     public void start(Stage stage) throws IOException {
 
+        //creates the warning for when the input is wrong, and set it to invisible initially
         Label warning = new Label("invalid input");
         warning.setVisible(false);
 
-        //creates second vbox for the add and delete buttons with proper spacing settings
+        //creates the vbox for the add,delete, addNumber, deleteNumber buttons with proper spacing settings
         final VBox vbox2 = new VBox();
 
         //title for the contact app
         final Label label = new Label("Contacts");
         label.setFont(new Font("Arial", 20));
 
-        //creates a Vbox for the table
+        //creates a Vbox for the title f the table and the table
         final VBox vbox = new VBox();
         vbox.setAlignment(Pos.CENTER);
         vbox.setSpacing(5);
@@ -69,7 +76,7 @@ public class HelloApplication extends Application {
         grid.add(new Label("Delete Number Index"), 0, 7);
         grid.add(warning,0,8);
 
-        // creates textfields
+        // creates textfields for all the informations of a contact
         TextField firstNameField = new TextField();
         TextField lastNameField = new TextField();
         TextField emailField = new TextField();
@@ -89,7 +96,7 @@ public class HelloApplication extends Application {
         grid.add(newNumber, 1, 6);
         grid.add(deleteNumIndex, 1, 7);
 
-        //creates the add button with set sizes
+        //button that adds the contact
         Button add = new Button("Add");
         add.setPrefWidth(100); // Set preferred width
         add.setPrefHeight(50); // Set preferred height
@@ -100,9 +107,10 @@ public class HelloApplication extends Application {
                 if(firstNameField.getText().equals("")&&lastNameField.getText().equals("")&&emailField.getText().equals("")&&numberField.getText().equals("")&&postalCodeField.getText().equals("")&&companyField.getText().equals("")){
                     //if all of the fields are clear then do nothing
                 }else
+                    //if the number field is something other than numbers or comas, or the email section doesn't contain the @ sign then the program doesn't add the contact because input is invalid
                     if((!numberField.getText().matches("[0-9,]*")&&!numberField.getText().equals(""))||(!emailField.getText().contains("@")&&!emailField.getText().equals(""))){
+                        //show the warning label for 3 seconds
                         warning.setVisible(true);
-
                         PauseTransition pause = new PauseTransition(Duration.seconds(3));
                         pause.setOnFinished(event -> warning.setVisible(false));
                         pause.play();
@@ -163,6 +171,7 @@ public class HelloApplication extends Application {
             }
         });
 
+        //add the above two buttons to the vbox2 and set the style for the vbox
         vbox2.getChildren().addAll(add,delete);
         vbox.setPadding(new Insets(10, 20, 10, 20));
         vbox2.setAlignment(Pos.CENTER);
@@ -202,6 +211,8 @@ public class HelloApplication extends Application {
                 throw new RuntimeException(e);
             }
         });
+
+        //the email colum is special due to input validation and custom cell renderings
         TableColumn<Contact, String> emailCol = new TableColumn<>("Email");
         emailCol.setCellValueFactory(new PropertyValueFactory<Contact, String>("email"));
         emailCol.setCellFactory(TextFieldTableCell.forTableColumn());
@@ -215,34 +226,48 @@ public class HelloApplication extends Application {
             Color randomColor = Color.color(red, green, blue);
             String colorString = toRgbString(randomColor);
 
-            // Method to convert Color to RGB string
+            /**
+             * Method to convert Color to RGB string
+             */
             private String toRgbString(Color color) {
                 return String.format("rgb(%d, %d, %d)",
                         (int) (color.getRed() * 255),
                         (int) (color.getGreen() * 255),
                         (int) (color.getBlue() * 255));
             }
+
+            /**
+             * method used to update each cell of the email colum everything it is changed
+             * @param item
+             * @param empty
+             */
             @Override
             public void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
                 if (empty || item == null) {
+                    //sets the text and style when the data in the cell doesn't exist
                     setText(null);
                     setGraphic(null);
                     setStyle("");
                 } else {
+                    //other wise sets the item and a random colour for the custom cell rendering
                     setText(item);
                     setStyle("-fx-background-color: " + colorString + "; -fx-border-color: lightgrey; -fx-border-width: 0 0 1 1;");
                 }
             }
         });
+
+        //when the email commits an edit
         emailCol.setOnEditCommit(event -> {
+            //gets the position and row of the email
             TablePosition<Contact, String> pos = event.getTablePosition();
             int row = pos.getRow();
-            Contact contact = event.getTableView().getItems().get(row);
+            //if the new edited value has @ then it changes the value and refreshes the table
             if(event.getNewValue().contains("@")){
                 event.getRowValue().setEmail(event.getNewValue());
                 table.refresh();
             }else{
+                //if the new value doesn't satisfy the input specification, then warning comes out for 3 seconds and refreshes the table
                 warning.setVisible(true);
                 PauseTransition pause = new PauseTransition(Duration.seconds(3));
                 pause.setOnFinished(thisevent -> warning.setVisible(false));
@@ -250,20 +275,24 @@ public class HelloApplication extends Application {
                 table.refresh();
             }
             try {
+                //updates the contact in case anything has changed
                 Contact.updateContacts();
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         });
 
+        //setting up colum for numbers
         TableColumn<Contact, SimpleListProperty<String>> numberCol = new TableColumn<>("Numbers");
         numberCol.setCellValueFactory(new PropertyValueFactory<>("number"));
 
+        //setting up button to delete a number
         Button deleteNumber = new Button("Delete Number");
         vbox2.getChildren().add(deleteNumber);
         deleteNumber.setPrefWidth(100); // Set preferred width
         deleteNumber.setPrefHeight(50); // Set preferred height
 
+        //setting up button to add a button to a contact
         Button addNumber = new Button("Add Number");
         vbox2.getChildren().add(addNumber);
         addNumber.setPrefWidth(100); // Set preferred width
@@ -271,21 +300,22 @@ public class HelloApplication extends Application {
 
         //for the number property, because it is a dynamic element, it displayed as a list instead which is why instead of string it is a SimpleListProperty
         numberCol.setCellFactory(column -> new TableCell<Contact, SimpleListProperty<String>>() {
-            private final ListView<String> listView = new ListView<>();
+            private final ListView<String> listView = new ListView<>();//creates a listView for the numbers
             {
                 listView.setEditable(true); //allow the list view to be edited
                 listView.setCellFactory(TextFieldListCell.forListView());//set the cells in the list to be text fields so that they can be edited
                 //setOnEditCommit is important because it only does the follwing after a edit is committed (after the user pressed enter)
                 listView.setOnEditCommit(event -> {
-                    if(event.getNewValue().matches("[0-9,]*")){
+                    //input validation has to include numbers
+                    if(event.getNewValue().matches("[0-9]*")){
                         int index = event.getIndex(); //gets the index of the number that is being edited
                         String newValue = event.getNewValue(); //gets the new string value entered edit
                         Contact contact = getTableView().getItems().get(getIndex()); //gets the contact that is associated with the change
                         contact.updateNumber(index, newValue); //changes the value of the number in the contac itself
                         listView.getItems().set(index, newValue); //sets the value in the listview to the new string value that represents the number
                     }else{
+                        //sets a warning if the input doesn't fit the input specifications
                         warning.setVisible(true);
-
                         PauseTransition pause = new PauseTransition(Duration.seconds(3));
                         pause.setOnFinished(thisevent -> warning.setVisible(false));
                         pause.play();
@@ -297,26 +327,30 @@ public class HelloApplication extends Application {
                     }
                 });
 
+                //deletes the number based on the order it is in the list of numbers
                 deleteNumber.setOnAction(event -> {
-                    int index = Integer.parseInt(deleteNumIndex.getText());
-                    table.getSelectionModel().getSelectedItem().getNumber().remove(index-1);
-                    deleteNumIndex.clear();
-                    listView.getItems().remove(index-1);
+                    int index = Integer.parseInt(deleteNumIndex.getText()); //gets the index input from the textfield
+                    table.getSelectionModel().getSelectedItem().getNumber().remove(index-1); //deletes that corresponding index but minus one because everything starts at 0
+                    deleteNumIndex.clear(); //clears the text field
+                    listView.getItems().remove(index-1); //updates it in the list view
                     try {
-                        Contact.updateContacts();
+                        Contact.updateContacts(); //updates the contact in case when there are changes
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
                 });
 
+                //adds a number into a contact
                 addNumber.setOnAction(event -> {
-                    String newValue = newNumber.getText();
+                    String newValue = newNumber.getText();//gets the number from the textfield
 
-                    if(newValue.matches("[0-9,]*")&&!newValue.equals("")){
+                    //if input matches the input specification and it is not blank adds it into the contactlist and into the listView
+                    if(newValue.matches("[0-9]*")&&!newValue.equals("")){
                         table.getSelectionModel().getSelectedItem().getNumber().add(newValue);
-                        newNumber.clear();
+                        newNumber.clear(); //clears the text field for later
                         listView.getItems().add(newValue);
                     }else{
+                        //otherwise, warn the user and clear the texfield
                         warning.setVisible(true);
 
                         PauseTransition pause = new PauseTransition(Duration.seconds(3));
@@ -325,7 +359,7 @@ public class HelloApplication extends Application {
                         newNumber.clear();
                     }
                     try {
-                        Contact.updateContacts();
+                        Contact.updateContacts(); //updates in case of any change
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }

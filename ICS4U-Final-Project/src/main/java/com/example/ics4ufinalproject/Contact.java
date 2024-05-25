@@ -30,7 +30,15 @@ public class Contact {
     //class variable of the contactlist that will store all of the contacts
     public static ArrayList<Contact> contactList = new ArrayList<Contact>();
 
-    //contacts constructor, the numbers input is initially a string, then each number is sparated by "," to be put into the simpleListProperty
+    /**
+     * contacts constructor, the numbers input is initially a string, then each number is sparated by "," to be put into the simpleListProperty
+     * @param firstName
+     * @param lastName
+     * @param email
+     * @param number
+     * @param postalCode
+     * @param company
+     */
     public Contact(String firstName, String lastName, String email, String number, String postalCode, String company) {
         this.firstName = new SimpleStringProperty(firstName);
         this.lastName = new SimpleStringProperty(lastName);
@@ -82,11 +90,19 @@ public class Contact {
         return number;
     }
 
-    //updates a value in the number's simpleListProperty through an index and value
+    /**
+     * updates a value in the number's simpleListProperty through an index and value
+     * @param index
+     * @param newNumber
+     */
     public void updateNumber(int index, String newNumber) {
         this.number.set(index, newNumber);
     }
 
+    /**
+     * adds a new number to the number list
+     * @param newNumber
+     */
     public void addNumber(String newNumber){
         this.number.add(newNumber);
     }
@@ -189,7 +205,8 @@ public class Contact {
     }
 
     /**
-     * pareses the information of the contact and put the contact into arrayList
+     * pareses all the contacts in the json file
+     * @param thisContact
      */
     private static void parseContactObject(JSONObject thisContact)
     {
@@ -210,7 +227,7 @@ public class Contact {
                 System.out.println("empty document");
                 return;
             }
-            //loops through the json file to get all of the jsonObjects and uses the lamda expression to call on the parseTaskObject method which will add the tasks into the actual task List
+            //loops through the json file to get all of the jsonObjects and uses the lamda expression to call on the parseNumberObject method which will add the numbers into the actual number list
             numbersArray.forEach( emp -> parseNumberObject( (JSONObject) emp, numbersArryList) );
         } else {
             System.out.println("The file does not contain a JSON object.");
@@ -229,6 +246,11 @@ public class Contact {
         contactList.add(tempContact);
     }
 
+    /**
+     * parses all the numbers in the json files
+     * @param emp
+     * @param numbers
+     */
     private static void parseNumberObject(JSONObject emp, ArrayList<String> numbers) {
         String number =  (String) emp.get("number");
         numbers.add(number);
